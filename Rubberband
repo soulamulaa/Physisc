@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+
+# Parameters
+size = 50
+mass = 5
+
+# Create grid
+x = np.linspace(-5, 5, size)
+y = np.linspace(-5, 5, size)
+X, Y = np.meshgrid(x, y)
+
+def sheet_deformation(X, Y, mass):
+    # Simulate spacetime curvature: deeper well for higher mass
+    R = np.sqrt(X**2 + Y**2)
+    Z = -mass / (R + 1)  # Avoid division by zero
+    return Z
+
+Z = sheet_deformation(X, Y, mass)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+sheet = ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8)
+ax.set_title("Rubber Sheet Analogy of Spacetime Curvature")
+ax.set_zlim(-10, 2)
+
+# Add slider for mass
+ax_mass = plt.axes([0.25, 0.02, 0.5, 0.03])
+slider = Slider(ax_mass, 'Mass', 1, 20, valinit=mass)
+
+def update(val):
+    ax.cla()
+    new_mass = slider.val
+    Z = sheet_deformation(X, Y, new_mass)
+    ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8)
+    ax.set_title("Rubber Sheet Analogy of Spacetime Curvature")
+    ax.set_zlim(-10, 2)
+    fig.canvas.draw_idle()
+
+slider.on_changed(update)
+
+plt.show()
