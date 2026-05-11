@@ -1,0 +1,61 @@
+# Visualize a rotating tesseract (4D hypercube)
+# filepath: /home/tpleetstech/Desktop/irron curr/tesseract_4d.py
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+
+# Generate 16 vertices of a tesseract (hypercube in 4D)
+def tesseract_vertices():
+    return np.array([[x, y, z, w] for x in [-1, 1]
+                                  for y in [-1, 1]
+                                  for z in [-1, 1]
+                                  for w in [-1, 1]])
+
+# Connect vertices that differ by exactly one coordinate
+def tesseract_edges(vertices):
+    edges = []
+    for i, v1 in enumerate(vertices):
+        for j, v2 in enumerate(vertices):
+            if i < j and np.sum(np.abs(v1 - v2)) == 2:
+                edges.append((i, j))
+    return edges
+
+# Project 4D points to 3D
+def project(points, angle):
+    # Rotate in 4D (w-x plane)
+    c, s = np.cos(angle), np.sin(angle)
+    rot = np.array([[c, 0, 0, -s],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [s, 0, 0, c]])
+    rotated = points @ rot.T
+    # Perspective projection from 4D to 3D
+    w = rotated[:, 3]
+    factor = 1 / (2 - w)
+    return rotated[:, :3] * factor[:, np.newaxis]
+
+vertices = tesseract_vertices()
+edges = tesseract_edges(vertices)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Animation function
+def animate(angle):
+    ax.cla()
+    verts3d = project(vertices, angle)
+    # Draw edges
+    for i, j in edges:
+        ax.plot(*zip(verts3d[i], verts3d[j]), color='blue', linewidth=2)
+    # Draw vertices
+    ax.scatter(verts3d[:,0], verts3d[:,1], verts3d[:,2], color='red', s=30)
+    ax.set_xlim(-2,2)
+    ax.set_ylim(-2,2)
+    ax.set_zlim(-2,2)
+    ax.set_axis_off()
+    ax.set_title("Den 4. dimension")
+
+ani = FuncAnimation(fig, animate, frames=np.linspace(0, 2*np.pi, 100), interval=50)
+plt.show()
